@@ -110,14 +110,18 @@ public class AccountController {
 		return service.findAllClients();
 	}
 	
-	//pruebas::
+	//Consumo CLIENTE::
 	
 	@GetMapping("/ListarClientesXNroDocu/{nroDoc}")
 	public Mono<Client> findClientNrDocu(@PathVariable String nroDoc){
 		return service.findClientByNroDoc(nroDoc);
 	}
 	
+	//
 	
-	
+	@GetMapping("/ListarClientesXNroDocuLocal/{nroDoc}")
+	public Mono<Account> findClientNrDocuL(@PathVariable String nroDoc){
+		return service.findClienteByNroDocAccount(nroDoc);
+	}
 	
 }

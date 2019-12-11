@@ -26,5 +26,6 @@ public interface IAccountService {
 	public Mono<Void> deleteClient(String id);
 	
 	
-	public Mono<Client> findClientByNroDoc(String nroDoc);
+	public Mono<Client> findClientByNroDoc(String nroDoc); //Consumo A cliente.
+	public Mono<Account> findClienteByNroDocAccount(String nroDoc); //Consulta al documento Account
 }

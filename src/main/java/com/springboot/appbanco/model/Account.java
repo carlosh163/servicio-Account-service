@@ -23,11 +23,19 @@ public class Account {
 	//private List<headline> headlinesList; // Todos los Titulares..
 	
 	private List<Person> PersonAuthorizedList;
-	
+	private Integer accountNro;
 	private double saldo;
 	private char state; //Activo o Inactivo.
 	
 	
+	
+	
+	public Integer getAccountNro() {
+		return accountNro;
+	}
+	public void setAccountNro(Integer accountNro) {
+		this.accountNro = accountNro;
+	}
 	public String getCodAccount() {
 		return codAccount;
 	}
