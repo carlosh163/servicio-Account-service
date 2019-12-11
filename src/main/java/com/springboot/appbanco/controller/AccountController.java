@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.springboot.appbanco.exception.ModeloNotFoundException;
 import com.springboot.appbanco.model.Account;
 import com.springboot.appbanco.model.Client;
 import com.springboot.appbanco.service.IAccountService;
@@ -67,6 +68,24 @@ public class AccountController {
 	
 	@GetMapping("/{id}")
 	public Mono<Account> findById(@PathVariable String id){
+		
+		//Mono<Account> accountE = service.findById(id);
+		//accountE.empty()
+		
+		//return service.findById(id);
+		//System.out.println("resp"+accountE);
+		
+		/*return accountE.flatMap(account ->{
+			if(account == null) {
+				return Mono.error(new ModeloNotFoundException("ID NO ENCONTRADO"+ id));
+			}
+		}).switchIfEmpty(Mono.just(accountE));
+		
+		if(accountE == null) {
+			throw new ModeloNotFoundException("ID NO ENCONTRADO"+ id);
+		}*/
+		
+		//return accountE;
 		return service.findById(id);
 	}
 	
@@ -90,5 +109,15 @@ public class AccountController {
 	public Flux<Client> findAllClients(){
 		return service.findAllClients();
 	}
+	
+	//pruebas::
+	
+	@GetMapping("/ListarClientesXNroDocu/{nroDoc}")
+	public Mono<Client> findClientNrDocu(@PathVariable String nroDoc){
+		return service.findClientByNroDoc(nroDoc);
+	}
+	
+	
+	
 	
 }

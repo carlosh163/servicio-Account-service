@@ -16,4 +16,5 @@ public class AppConfig {
 
 		return WebClient.create(url); //EndPoint para conectarse con ese MS.
 	}
+	
 }

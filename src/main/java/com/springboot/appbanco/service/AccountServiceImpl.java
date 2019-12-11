@@ -3,13 +3,17 @@ package com.springboot.appbanco.service;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.springframework.http.MediaType.*;
 import org.springframework.stereotype.Service;
 import static org.springframework.web.reactive.function.BodyInserters.*;
+
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.springboot.appbanco.exception.ModeloNotFoundException;
 import com.springboot.appbanco.model.Account;
 import com.springboot.appbanco.model.Client;
 import com.springboot.appbanco.repo.IAccountRepo;
@@ -37,6 +41,36 @@ public class AccountServiceImpl implements IAccountService {
 	@Override
 	public Mono<Account> findById(String id) {
 		// TODO Auto-generated method stub
+		
+		/*
+		 * 
+		 * 
+		 * Mono<Beneficiary> found = beneficiaryRepository.findBeneficiariesByName(requestDTO.getBeneficiaryName());
+
+		return found.flatMap(beneficiary-> {
+            if(beneficiary== null)
+                return Mono.empty(); // never called
+            else
+                return Mono.error(new RuntimeException("Already exist " + beneficiary.getId()));
+
+        }).switchIfEmpty(Mono.just(requestDTO.getBeneficiaryObjectToSave())); // new object here which want to save. 
+		
+		*/
+		
+		
+		//return repo.findById(id);
+		
+		/*Mono<Account> accountE= repo.findById(id);
+		return accountE.flatMap(account ->{
+			if(account == null) 
+				throw new ModeloNotFoundException("ID NO ENCONTRADO"+ id);
+		else
+			return repo.findById(id);
+		});*/
+		
+		
+		
+		//this.Account  = Optional.ofNullable(this.Account);
 		return repo.findById(id);
 	}
 
@@ -127,6 +161,16 @@ public class AccountServiceImpl implements IAccountService {
 		return client.delete().uri("/{id}",Collections.singletonMap("id",id))
 				.exchange()
 				.then();
+	}
+
+	@Override
+	public Mono<Client> findClientByNroDoc(String nroDoc) {
+		return client.get().uri("/BuscarClientePorNroDoc/"+nroDoc)
+				.accept(APPLICATION_JSON_UTF8)
+				//.retrieve()
+				//.bodyToMono(Producto.class);
+				.exchange()
+				.flatMap(response -> response.bodyToMono(Client.class));
 	}
 	
 

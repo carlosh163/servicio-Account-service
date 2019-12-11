@@ -2,6 +2,8 @@ package com.springboot.appbanco.model;
 
 import java.util.List;
 
+import javax.validation.constraints.Size;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -10,6 +12,8 @@ public class Account {
 
 	@Id
 	private String codAccount;
+	
+	@Size(min = 3,message ="Tipo de Producto debe tener minimo 3 caracteres")
 	private String ProductType; // Cuenta Bancarias o Producto Credito.
 	
 	private String AccountType; // C.B = Ahorro, CU.Corriente, CU.PlazoFijo. -- CRED = Personal, Empresarial, Tarjeta Credito, Adelanto Efectivo

@@ -9,4 +9,5 @@ import com.springboot.appbanco.model.Account;
 @Repository
 public interface IAccountRepo extends ReactiveMongoRepository<Account,String>{
 
+	
 }
