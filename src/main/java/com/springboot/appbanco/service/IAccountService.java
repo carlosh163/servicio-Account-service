@@ -1,5 +1,7 @@
 package com.springboot.appbanco.service;
 
+import java.util.Map;
+
 import com.springboot.appbanco.model.Account;
 import com.springboot.appbanco.model.Client;
 
@@ -12,7 +14,7 @@ public interface IAccountService {
 
 	public Mono<Account> findById(String id);
 
-	public Mono<Account> create(Account account);
+	public Mono<Map<String,Object>> create(Account account);
 
 	public Mono<Account> update(Account account, String id);
 

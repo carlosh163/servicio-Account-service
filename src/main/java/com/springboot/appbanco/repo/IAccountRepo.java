@@ -12,6 +12,6 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface IAccountRepo extends ReactiveMongoRepository<Account,String>{
 
-	@Query("{'customerList.nroDocumento' : ?0}")
+	@Query("{'customerList.documentNumber' : ?0}")
 	Mono<Account> findByAccountXDocument(String document);
 }

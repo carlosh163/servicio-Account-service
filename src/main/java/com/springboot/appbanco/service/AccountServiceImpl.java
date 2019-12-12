@@ -1,6 +1,7 @@
 package com.springboot.appbanco.service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,101 +42,78 @@ public class AccountServiceImpl implements IAccountService {
 
 	@Override
 	public Mono<Account> findById(String id) {
-		// TODO Auto-generated method stub
-
-		/*
-		 * 
-		 * 
-		 * Mono<Beneficiary> found =
-		 * beneficiaryRepository.findBeneficiariesByName(requestDTO.getBeneficiaryName()
-		 * );
-		 * 
-		 * return found.flatMap(beneficiary-> { if(beneficiary== null) return
-		 * Mono.empty(); // never called else return Mono.error(new
-		 * RuntimeException("Already exist " + beneficiary.getId()));
-		 * 
-		 * }).switchIfEmpty(Mono.just(requestDTO.getBeneficiaryObjectToSave())); // new
-		 * object here which want to save.
-		 * 
-		 */
-
-		// return repo.findById(id);
-
-		/*
-		 * Mono<Account> accountE= repo.findById(id); return accountE.flatMap(account
-		 * ->{ if(account == null) throw new ModeloNotFoundException("ID NO ENCONTRADO"+
-		 * id); else return repo.findById(id); });
-		 */
-
-		// this.Account = Optional.ofNullable(this.Account);
 		return repo.findById(id);
 	}
 
 	// REQ03 : Validacion de Cuenta Unica- Ahorro.,
 	@Override
-	public Mono<Account> create(Account account) {
+	public Mono<Map<String, Object>> create(Account account) {
 		System.out.println("CUENTAAA");
-
-		// Flux<Account> listaCuentas= repo.findAll();
-
-		// listaCuentas.flatMap(cuenta ->{
-
+		
+		
+		// Aperturar una Cuenta Ahorro.. MSAhorro. DATOS cuenta (nroCuenta,SALDO,fechaApert..) List<Client> objClient.
+				//OBJETIVO: Identificar si los DNI de los Clientes son nuevos....
 		List<Client> listaCLientesNuevos = account.getCustomerList();
+		 Mono<Boolean> vB = FluxValidarDNIExistentes(listaCLientesNuevos).reduce(true, (a,b) -> a&b);
+		//Falso...
+		 return vB.flatMap(b ->{
+			 if(b) {
+					//System.out.println("Ya puede registrar");
+				 
+				 
+				 
+					Map<String, Object> params = new HashMap<>();
+					params.put("Estado", "Se Registro con exito");
+					
+					params.put("detail-Create", repo.save(account).subscribe());
+					
+					Date date = new Date();
+					
+					account.setOpeningDate(date);
+					
+					return Mono.just(params);
+					
+				}else {
+					System.out.println("Ya existe");
+					
+					Map<String, Object> params = new HashMap<>();
+					params.put("Estado", "Ya existe titular (es)");
+					
+					return Mono.just(params);
+				}
+			 
+			 //return Mono.empty();
+		 });
 
-		String DNIE = "";
-		for (Client listaC : listaCLientesNuevos) {
-			DNIE = listaC.getNroDocumento();
-
-			System.out.println("DNI " + DNIE); // 47 48
-		}
-
-		listaCLientesNuevos.forEach(listaCLientesN -> {
-
+	}
+	
+	private Flux<Boolean> FluxValidarDNIExistentes(List<Client> list) {
+		//boolean estadoF= false;
+		return Flux.fromIterable(list).flatMap(client ->{
+			
+			String DNI = client.getDocumentNumber();
+			
+			
+			Account objcuenta = new Account();
+			objcuenta.setAccountstatus('N');
+			
+			return repo.findByAccountXDocument(DNI)
+			.switchIfEmpty(Mono.just(objcuenta ))
+			.map(DatAccountsOp ->{
+				if(DatAccountsOp.getAccountstatus()=='N') {
+					//System.out.println("Ya puede registrar");
+					return true;
+					
+				}else {
+					//System.out.println("Ya existe");
+					return false;
+				}
+				
+				//return estadoF;
+			});
+			
 		});
-
-		System.out.println(DNIE);
-		Account objcuenta = new Account();
-		objcuenta.setState('N');
-		Mono<Account> datosCuenta2 = Mono.just(objcuenta);
-
-		return repo.findByAccountXDocument(DNIE)
-				.switchIfEmpty(datosCuenta2)
-				.flatMap(DatAccountsOp ->{
-					
-					
-					if(DatAccountsOp != null) {
-						System.out.println("SE ENCONTRO A ESTE CLIENTE");
-					}
-					
-					if(DatAccountsOp.getState() =='N') {
-						System.out.println("Ya puede registrar");
-						
-					}else {
-						System.out.println("Ya existe");
-					}
-					
-					return Mono.empty();
-				});
-
-		/*return datosCuenta.flatMap(datAccount -> {
-
-			Integer nroE = datAccount.getAccountNro();
-			Integer nroAR = account.getAccountNro();
-
-			System.out.println("nro Encontrado" + nroE);
-			System.out.println("nro A registrar" + nroAR);
-			if (nroE != null) {
-				System.out.println("Ya existe");
-			} else {
-				System.out.println("Ya puede registrar");
-			}
-			// account.getCustomerList()
-			return Mono.empty();
-
-		});*/
-
-		// return repo.save(account);
-
+		 
 	}
 
 	@Override
