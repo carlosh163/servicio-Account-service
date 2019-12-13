@@ -14,7 +14,7 @@ public interface IAccountService {
 
 	public Mono<Account> findById(String id);
 
-	public Mono<Map<String,Object>> create(Account account);
+	public Mono<Account> create(Account account);
 
 	public Mono<Account> update(Account account, String id);
 

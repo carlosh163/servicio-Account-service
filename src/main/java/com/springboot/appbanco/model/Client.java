@@ -10,7 +10,7 @@ import lombok.Data;
 
 public class Client extends Person{
 
-	private String idClient;
+	//private String idClient;
 
 	
 	private String clientType; // Personal o Empresarial.
@@ -25,13 +25,13 @@ public class Client extends Person{
 
 	
 
-	public String getIdClient() {
+	/*public String getIdClient() {
 		return idClient;
 	}
 
 	public void setIdClient(String idClient) {
 		this.idClient = idClient;
-	}
+	}*/
 	public String getClientType() {
 		return clientType;
 	}

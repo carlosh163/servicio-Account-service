@@ -3,7 +3,7 @@ package com.springboot.appbanco.model;
 
 public class PersonAuthorized extends Person{
 
-	private String idPersonAutho;
+	//private String idPersonAutho;
 	
 	
 
@@ -11,7 +11,7 @@ public class PersonAuthorized extends Person{
 
 
 
-	public String getIdPersonAutho() {
+	/*public String getIdPersonAutho() {
 		return idPersonAutho;
 	}
 
@@ -19,7 +19,7 @@ public class PersonAuthorized extends Person{
 
 	public void setIdPersonAutho(String idPersonAutho) {
 		this.idPersonAutho = idPersonAutho;
-	}
+	}*/
 
 
 

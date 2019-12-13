@@ -47,73 +47,94 @@ public class AccountServiceImpl implements IAccountService {
 
 	// REQ03 : Validacion de Cuenta Unica- Ahorro.,
 	@Override
-	public Mono<Map<String, Object>> create(Account account) {
+	public Mono<Account> create(Account account) {
 		System.out.println("CUENTAAA");
-		
-		
-		// Aperturar una Cuenta Ahorro.. MSAhorro. DATOS cuenta (nroCuenta,SALDO,fechaApert..) List<Client> objClient.
-				//OBJETIVO: Identificar si los DNI de los Clientes son nuevos....
+
+		// Aperturar una Cuenta Ahorro.. MSAhorro. DATOS cuenta
+		// (nroCuenta,SALDO,fechaApert..) List<Client> objClient.
+		// OBJETIVO: Identificar si los DNI de los Clientes son nuevos....
 		List<Client> listaCLientesNuevos = account.getCustomerList();
-		 Mono<Boolean> vB = FluxValidarDNIExistentes(listaCLientesNuevos).reduce(true, (a,b) -> a&b);
-		//Falso...
-		 return vB.flatMap(b ->{
-			 if(b) {
-					//System.out.println("Ya puede registrar");
-				 
-				 
-				 
-					Map<String, Object> params = new HashMap<>();
-					params.put("Estado", "Se Registro con exito");
+		Mono<Boolean> vB = FluxValidarDNIExistentes(listaCLientesNuevos).reduce(true, (a, b) -> a & b);
+		// Falso...
+		return vB.flatMap(b -> {
+			if (b) {
+				// System.out.println("Ya puede registrar");
+
+				Date date = new Date();
+
+				account.setOpeningDate(date);
+				/*Map<String, Object> params = new HashMap<>();  Map<String, Object>
+				params.put("Estado", "Se Registro con exito");*/
+
+				//params.put("detail-Create", repo.save(account).subscribe());
+				
+				
+				/* Registrando en CLiente.... Datos de la cuenta, Lista de Clientes (Documentos)*/
+				
+				
+				//Enviar una lista de Clientes..
+				Mono<Client> mCliente = client.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+						.syncBody(listaCLientesNuevos).retrieve().bodyToMono(Client.class);
+				
+				
+				/*Flux.fromIterable(listaCLientesNuevos).flatMap(tclient -> {
+
+					//Datos para la cuenta:
+					tclient.set
+					account
 					
-					params.put("detail-Create", repo.save(account).subscribe());
 					
-					Date date = new Date();
 					
-					account.setOpeningDate(date);
-					
-					return Mono.just(params);
-					
-				}else {
-					System.out.println("Ya existe");
-					
-					Map<String, Object> params = new HashMap<>();
-					params.put("Estado", "Ya existe titular (es)");
-					
-					return Mono.just(params);
-				}
-			 
-			 //return Mono.empty();
-		 });
+					return Flux.empty();
+
+				});*/
+				
+				
+				
+
+				return repo.save(account);
+
+			} else {
+				System.out.println("Ya existe");
+
+				/*Map<String, Object> params = new HashMap<>();
+				params.put("Estado", "Ya existe titular (es)");*/
+
+				//return Mono.just(params);
+				
+				 return Mono.empty();
+			}
+
+			// return Mono.empty();
+		});
 
 	}
-	
+
 	private Flux<Boolean> FluxValidarDNIExistentes(List<Client> list) {
-		//boolean estadoF= false;
-		return Flux.fromIterable(list).flatMap(client ->{
-			
+		// boolean estadoF= false;
+
+		return Flux.fromIterable(list).flatMap(client -> {
+
 			String DNI = client.getDocumentNumber();
-			
-			
+
 			Account objcuenta = new Account();
 			objcuenta.setAccountstatus('N');
-			
-			return repo.findByAccountXDocument(DNI)
-			.switchIfEmpty(Mono.just(objcuenta ))
-			.map(DatAccountsOp ->{
-				if(DatAccountsOp.getAccountstatus()=='N') {
-					//System.out.println("Ya puede registrar");
+
+			return repo.findByAccountXDocument(DNI).switchIfEmpty(Mono.just(objcuenta)).map(DatAccountsOp -> {
+				if (DatAccountsOp.getAccountstatus() == 'N') {
+					// System.out.println("Ya puede registrar");
 					return true;
-					
-				}else {
-					//System.out.println("Ya existe");
+
+				} else {
+					// System.out.println("Ya existe");
 					return false;
 				}
-				
-				//return estadoF;
+
+				// return estadoF;
 			});
-			
+
 		});
-		 
+
 	}
 
 	@Override
