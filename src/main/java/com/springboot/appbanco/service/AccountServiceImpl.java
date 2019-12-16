@@ -1,28 +1,22 @@
 package com.springboot.appbanco.service;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-
-import static org.springframework.http.MediaType.*;
 import org.springframework.stereotype.Service;
-import static org.springframework.web.reactive.function.BodyInserters.*;
-
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.springboot.appbanco.exception.ModeloNotFoundException;
 import com.springboot.appbanco.model.Account;
 import com.springboot.appbanco.model.Client;
 import com.springboot.appbanco.repo.IAccountRepo;
 
-import reactor.core.CoreSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -60,8 +54,7 @@ public class AccountServiceImpl implements IAccountService {
 	public Mono<Account> create(Account account) {
 		System.out.println("CUENTAAA");
 
-		// Aperturar una Cuenta Ahorro.. MSAhorro. DATOS cuenta
-		// (nroCuenta,SALDO,fechaApert..) List<Client> objClient.
+		// Aperturar una Cuenta Ahorro.. MSAhorro. DATOS cuenta (nroCuenta,SALDO,fechaApert..) List<Client> objClient.
 		// OBJETIVO: Identificar si los DNI de los Clientes son nuevos....
 		List<Client> listaCLientesNuevos = account.getCustomerList();
 		Mono<Boolean> vB = FluxValidarDNIExistentes(listaCLientesNuevos).reduce(true, (a, b) -> a & b);
@@ -71,62 +64,35 @@ public class AccountServiceImpl implements IAccountService {
 				// System.out.println("Ya puede registrar");
 
 				Date date = new Date();
-
 				account.setOpeningDate(date);
-				/*Map<String, Object> params = new HashMap<>();  Map<String, Object>
-				params.put("Estado", "Se Registro con exito");*/
-
-				//params.put("detail-Create", repo.save(account).subscribe());
 				
 				
-				
-				
-				
-				//Enviar una lista de Clientes..
-				//Mono<Client> mCliente = 
-				
-				
-				/*Flux.fromIterable(listaCLientesNuevos).flatMap(tclient -> {
-
-					//Datos para la cuenta:
-					tclient.set
-					account
-					
-					
-					
-					return Flux.empty();
-
-				});*/
 				
 				/* Registrando en MS CLiente.... Datos de la cuenta, Lista de Clientes (FILAS)*/
 				return Flux.just(account).flatMap( objC ->{
 						//Flux:
-					
+					wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+					.syncBody(objC).retrieve().bodyToFlux(Account.class).subscribe();
 					return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-							.syncBody(objC).retrieve().bodyToFlux(Account.class)
-							.next()
-							.map(objClie -> {
-								return wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-										.syncBody(objC).retrieve().bodyToFlux(Account.class);
-							});
+							.syncBody(objC).retrieve().bodyToFlux(Account.class);
+							
+								
+							
 				}).next() //Convierte de Flux a Mono.
 						.flatMap(objClient ->{
 							return repo.save(account);
 						});
-					
+				
+				
+				
+				
+				
 
 			} else {
 				System.out.println("Ya existe");
-
-				/*Map<String, Object> params = new HashMap<>();
-				params.put("Estado", "Ya existe titular (es)");*/
-
-				//return Mono.just(params);
-				
 				 return Mono.empty();
 			}
 
-			// return Mono.empty();
 		});
 
 	}
