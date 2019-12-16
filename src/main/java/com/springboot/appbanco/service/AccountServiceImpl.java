@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import static org.springframework.http.MediaType.*;
 import org.springframework.stereotype.Service;
 import static org.springframework.web.reactive.function.BodyInserters.*;
@@ -30,7 +32,15 @@ public class AccountServiceImpl implements IAccountService {
 	// Inyectar nuestro Cliente
 
 	@Autowired
-	private WebClient client;
+	@Qualifier("client")
+	private WebClient wCClient;
+	
+	
+	
+	
+	@Autowired
+	@Qualifier("personAutho")
+	private WebClient wCPersoAutho;
 
 	@Autowired
 	IAccountRepo repo;
@@ -69,12 +79,11 @@ public class AccountServiceImpl implements IAccountService {
 				//params.put("detail-Create", repo.save(account).subscribe());
 				
 				
-				/* Registrando en CLiente.... Datos de la cuenta, Lista de Clientes (Documentos)*/
+				
 				
 				
 				//Enviar una lista de Clientes..
-				Mono<Client> mCliente = client.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-						.syncBody(listaCLientesNuevos).retrieve().bodyToMono(Client.class);
+				//Mono<Client> mCliente = 
 				
 				
 				/*Flux.fromIterable(listaCLientesNuevos).flatMap(tclient -> {
@@ -89,10 +98,22 @@ public class AccountServiceImpl implements IAccountService {
 
 				});*/
 				
-				
-				
-
-				return repo.save(account);
+				/* Registrando en MS CLiente.... Datos de la cuenta, Lista de Clientes (FILAS)*/
+				return Flux.just(account).flatMap( objC ->{
+						//Flux:
+					
+					return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+							.syncBody(objC).retrieve().bodyToFlux(Account.class)
+							.next()
+							.map(objClie -> {
+								return wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+										.syncBody(objC).retrieve().bodyToFlux(Account.class);
+							});
+				}).next() //Convierte de Flux a Mono.
+						.flatMap(objClient ->{
+							return repo.save(account);
+						});
+					
 
 			} else {
 				System.out.println("Ya existe");
@@ -163,7 +184,7 @@ public class AccountServiceImpl implements IAccountService {
 	@Override
 	public Flux<Client> findAllClients() {
 
-		return client.get().accept(APPLICATION_JSON_UTF8).exchange()
+		return wCClient.get().accept(APPLICATION_JSON_UTF8).exchange()
 				.flatMapMany(response -> response.bodyToFlux(Client.class));
 
 	}
@@ -173,7 +194,7 @@ public class AccountServiceImpl implements IAccountService {
 		// TODO Auto-generated method stub
 		Map<String, Object> params = new HashMap<>();
 		params.put("id", id);
-		return client.get().uri("/{id}", params).accept(APPLICATION_JSON_UTF8)
+		return wCClient.get().uri("/{id}", params).accept(APPLICATION_JSON_UTF8)
 				// .retrieve()
 				// .bodyToMono(Producto.class);
 				.exchange().flatMap(response -> response.bodyToMono(Client.class));
@@ -182,7 +203,7 @@ public class AccountServiceImpl implements IAccountService {
 	@Override
 	public Mono<Client> createClient(Client cliente) {
 
-		return client.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+		return wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
 				// .body(fromObject(cliente)) - -BodyInserters
 				.syncBody(cliente).retrieve().bodyToMono(Client.class);
 	}
@@ -196,14 +217,14 @@ public class AccountServiceImpl implements IAccountService {
 		 * Collections.singletonMap("id",id)
 		 */
 
-		return client.put().uri("/{id}", params).accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+		return wCClient.put().uri("/{id}", params).accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
 				.syncBody(cliente).retrieve().bodyToMono(Client.class);
 	}
 
 	@Override
 	public Mono<Void> deleteClient(String id) {
 
-		return client.delete().uri("/{id}", Collections.singletonMap("id", id)).exchange().then();
+		return wCClient.delete().uri("/{id}", Collections.singletonMap("id", id)).exchange().then();
 	}
 
 	@Override
@@ -211,7 +232,7 @@ public class AccountServiceImpl implements IAccountService {
 
 		// Map<String, Object> params = new HashMap<>();
 		// params.put("id", id);
-		return client.get().uri("/BuscarClientePorNroDoc/{nroDoc}", Collections.singletonMap("nroDoc", nroDoc))
+		return wCClient.get().uri("/BuscarClientePorNroDoc/{nroDoc}", Collections.singletonMap("nroDoc", nroDoc))
 				.accept(APPLICATION_JSON_UTF8).exchange().flatMap(response -> response.bodyToMono(Client.class));
 	}
 
