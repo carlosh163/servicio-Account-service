@@ -21,21 +21,26 @@ public class Account {
 
 	@Id
 	private String codAccount;
-	
-	@Size(min = 3,message ="Tipo de Producto debe tener minimo 3 caracteres")
+
+	private String ProductType; // Cuenta Bancarias o Producto Credito.
+
+	private String accountType; // C.B = Ahorro, CU.Corriente, CU.PlazoFijo. -- CRED = Personal, Empresarial,
+								// Tarjeta Credito, Adelanto Efectivo
+
+	// @Size(min = 3,message ="Tipo de Producto debe tener minimo 3 caracteres")
 	private Integer accountNumber;
-	
-	//@JsonSerialize(using = ToStringSerializer.class)
-	
-	@JsonFormat(pattern = "dd-MM-yyyy",shape = Shape.STRING)
+
+	// @JsonSerialize(using = ToStringSerializer.class)
+
+	@JsonFormat(pattern = "dd-MM-yyyy", shape = Shape.STRING)
 	private Date openingDate; // Fecha Apertura
-	
-	private double balance; //saldo
-	
-	private List<Client> customerList; //Todos los Clientes que poseen una cuenta (Titulares)
-	private List<PersonAuthorized> personAuthorizedList; //Personas Autorizadas
-	
-	private char accountstatus; //Activo o Inactivo.
+
+	private double balance; // saldo
+
+	private List<Client> customerList; // Todos los Clientes que poseen una cuenta (Titulares)
+	private List<PersonAuthorized> personAuthorizedList; // Personas Autorizadas
+
+	private char accountstatus; // Activo o Inactivo.
 
 	public String getCodAccount() {
 		return codAccount;
@@ -52,8 +57,6 @@ public class Account {
 	public void setAccountNumber(Integer accountNumber) {
 		this.accountNumber = accountNumber;
 	}
-
-	
 
 	public Date getOpeningDate() {
 		return openingDate;
@@ -79,7 +82,6 @@ public class Account {
 		this.customerList = customerList;
 	}
 
-	
 	public List<PersonAuthorized> getPersonAuthorizedList() {
 		return personAuthorizedList;
 	}
@@ -96,15 +98,17 @@ public class Account {
 		this.accountstatus = accountstatus;
 	}
 
-	
+	public String getAccountType() {
+		return accountType;
+	}
+
+	public void setAccountType(String accountType) {
+		this.accountType = accountType;
+	}
 
 	
 	
 	
 	
-	
-	
-	
-	
-	
+
 }

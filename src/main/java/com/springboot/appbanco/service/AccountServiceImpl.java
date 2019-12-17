@@ -57,70 +57,172 @@ public class AccountServiceImpl implements IAccountService {
 		// Aperturar una Cuenta Ahorro.. MSAhorro. DATOS cuenta (nroCuenta,SALDO,fechaApert..) List<Client> objClient.
 		// OBJETIVO: Identificar si los DNI de los Clientes son nuevos....
 		List<Client> listaCLientesNuevos = account.getCustomerList();
-		Mono<Boolean> vB = FluxValidarDNIExistentes(listaCLientesNuevos).reduce(true, (a, b) -> a & b);
-		// Falso...
-		return vB.flatMap(b -> {
-			if (b) {
-				// System.out.println("Ya puede registrar");
+		
+		//Validando segun el Tipo de Cliente: (Personal)
+		
+		return Flux.fromIterable(listaCLientesNuevos).flatMap(client -> {
+		 //TypeClient::
+			
+			
+			
+			return Flux.just(client);
+		})
+		.next()
+		.flatMap(objClient ->{
+			
+		
+			System.out.println("Ingreso a ver 1 Cliente,tipo");
+			String typeC = objClient.getClientType();
+			String typeAccountl = account.getAccountType();
+			if(typeC.equals("Personal")) {
+				System.out.println("El tipo es Personal");
+				//Solo 1 debe tener de cada tipo:: (3 CB)
+				
+				
+				Mono<Boolean> vB = FluxValidarDNIExistentes(typeAccountl,listaCLientesNuevos).reduce(true, (a, b) -> a & b);
+				// Falso...
+				
+				return vB.flatMap(b -> {
+					if (b) {
+						// System.out.println("Ya puede registrar");
 
-				Date date = new Date();
-				account.setOpeningDate(date);
-				
-				
-				
-				/* Registrando en MS CLiente.... Datos de la cuenta, Lista de Clientes (FILAS)*/
-				return Flux.just(account).flatMap( objC ->{
-						//Flux:
-					wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-					.syncBody(objC).retrieve().bodyToFlux(Account.class).subscribe();
-					return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-							.syncBody(objC).retrieve().bodyToFlux(Account.class);
-							
-								
-							
-				}).next() //Convierte de Flux a Mono.
-						.flatMap(objClient ->{
-							return repo.save(account);
-						});
-				
-				
-				
-				
-				
+						Date date = new Date();
+						account.setOpeningDate(date);
+						
+						
+						
+						/* Registrando en MS CLiente.... Datos de la cuenta, Lista de Clientes (FILAS)*/
+						return Flux.just(account).flatMap( objC ->{
+								//Flux:
+							wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+							.syncBody(objC).retrieve().bodyToFlux(Account.class).subscribe();
+							return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+									.syncBody(objC).retrieve().bodyToFlux(Account.class);
+						}).next() //Convierte de Flux a Mono.
+								.flatMap(client ->{
+									return repo.save(account);
+								});
+					} else {
+						
+						//return new ResponseEntity<Page<Genero>>(pacientes, HttpStatus.OK);
+						System.out.println("Ya existe");
+						 return Mono.empty();
+						
+						//throw new ModeloNotFoundException("Ya existe almenos 1 Cliente que desea registrar");
+					}
 
-			} else {
-				System.out.println("Ya existe");
-				 return Mono.empty();
+				});
+
+				
+				
+				
+				
+			}else if(typeC.equals("Empresarial")){
+				System.out.println("El tipo es Empresarial");
+				
+				if(typeAccountl.equals("Ahorro")) {
+					System.out.println("No puede tener una cuenta.");
+				}else if(typeAccountl.equals("Plazo")) {
+					System.out.println("No puede tener una cuenta");
+				}else {
+					/* Registrando en MS CLiente.... Datos de la cuenta, Lista de Clientes (FILAS)*/
+					return Flux.just(account).flatMap( objC ->{
+							//Flux:
+						wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+						.syncBody(objC).retrieve().bodyToFlux(Account.class).subscribe();
+						return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+								.syncBody(objC).retrieve().bodyToFlux(Account.class);
+					}).next() //Convierte de Flux a Mono.
+							.flatMap(client ->{
+								return repo.save(account);
+							});
+				}
 			}
-
+			
+			return Mono.empty();
+			
 		});
-
+		
+		
+		
+		
 	}
 
-	private Flux<Boolean> FluxValidarDNIExistentes(List<Client> list) {
+	private Flux<Boolean> FluxValidarDNIExistentes(String typeAccountAperture,List<Client> lstclient) {
 		// boolean estadoF= false;
-
-		return Flux.fromIterable(list).flatMap(client -> {
-
-			String DNI = client.getDocumentNumber();
-
-			Account objcuenta = new Account();
-			objcuenta.setAccountstatus('N');
-
-			return repo.findByAccountXDocument(DNI).switchIfEmpty(Mono.just(objcuenta)).map(DatAccountsOp -> {
-				if (DatAccountsOp.getAccountstatus() == 'N') {
-					// System.out.println("Ya puede registrar");
-					return true;
-
-				} else {
-					// System.out.println("Ya existe");
-					return false;
+		
+		return repo.findByAccountType(typeAccountAperture).flatMap(cuentaxType ->{
+			
+			return Flux.fromIterable(cuentaxType.getCustomerList()).map(client -> {
+				boolean estado = true;
+				
+				for(Client objCliexists: lstclient) {
+					if(objCliexists.getDocumentNumber().equals(client.getDocumentNumber())) {
+						estado = false;
+						break;
+					}else {
+						estado = true;
+					}
 				}
-
-				// return estadoF;
+				//return Flux.just(client);
+				return estado;
+				
 			});
 
+				/*String DNI = client.getDocumentNumber();
+
+				Account objcuenta = new Account();
+				objcuenta.setAccountstatus('N');
+				
+/*Flux.fromIterable(lstclient).flatMap(clientExist ->{
+	
+	
+	
+	
+});*/
+				/*return Flux.fromIterable(list).flatMap(client -> {
+
+					String DNI = client.getDocumentNumber();
+
+					Account objcuenta = new Account();
+					objcuenta.setAccountstatus('N');
+
+					return repo.findByAccountXDocument(DNI).switchIfEmpty(Mono.just(objcuenta)).map(DatAccountsOp -> {
+						if (DatAccountsOp.getAccountstatus() == 'N') {
+							// System.out.println("Ya puede registrar");
+							return true;
+
+						} else {
+							// System.out.println("Ya existe");
+							return false;
+						}
+
+						// return estadoF;
+					});
+
+				});
+
+
+				
+						return repo.findByAccountXDocument(DNI).switchIfEmpty(Mono.just(objcuenta)).map(DatAccountsOp -> {
+					if (DatAccountsOp.getAccountstatus() == 'N') {
+						 System.out.println("Ya puede registrar");
+						return true;
+
+					} else {
+						// System.out.println("Ya existe");
+						return false;
+					}
+
+					// return estadoF;
+				});
+
+			});*/
+			
 		});
+		
+
+		
 
 	}
 
@@ -203,7 +305,7 @@ public class AccountServiceImpl implements IAccountService {
 	}
 
 	@Override
-	public Mono<Account> findClienteByNroDocAccount(String nroDoc) {
+	public Flux<Account> findClienteByNroDocAccount(String nroDoc) {
 
 		return repo.findByAccountXDocument(nroDoc);
 	}

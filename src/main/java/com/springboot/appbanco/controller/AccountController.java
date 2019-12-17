@@ -120,7 +120,7 @@ public class AccountController {
 	//
 	
 	@GetMapping("/ListarClientesXNroDocuLocal/{nroDoc}")
-	public Mono<Account> findClientNrDocuL(@PathVariable String nroDoc){
+	public Flux<Account> findClientNrDocuL(@PathVariable String nroDoc){
 		return service.findClienteByNroDocAccount(nroDoc);
 	}
 	
