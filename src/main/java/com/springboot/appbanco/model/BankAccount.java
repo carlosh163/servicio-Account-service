@@ -17,12 +17,12 @@ import lombok.Data;
 //Ahorro.
 @Document(collection = "account")
 @Data
-public class Account {
+public class BankAccount {
 
 	@Id
 	private String codAccount;
 
-	private String ProductType; // Cuenta Bancarias o Producto Credito.
+	private String productType; // Cuenta Bancarias o Producto Credito.
 
 	private String accountType; // C.B = Ahorro, CU.Corriente, CU.PlazoFijo. -- CRED = Personal, Empresarial,
 								// Tarjeta Credito, Adelanto Efectivo
@@ -106,6 +106,15 @@ public class Account {
 		this.accountType = accountType;
 	}
 
+	public String getProductType() {
+		return productType;
+	}
+
+	public void setProductType(String productType) {
+		this.productType = productType;
+	}
+
+	
 	
 	
 	

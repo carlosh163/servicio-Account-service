@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.springboot.appbanco.model.Account;
+import com.springboot.appbanco.model.BankAccount;
 import com.springboot.appbanco.model.Client;
 import com.springboot.appbanco.repo.IAccountRepo;
 
@@ -40,18 +40,18 @@ public class AccountServiceImpl implements IAccountService {
 	IAccountRepo repo;
 
 	@Override
-	public Flux<Account> findAll() {
+	public Flux<BankAccount> findAll() {
 		return repo.findAll();
 	}
 
 	@Override
-	public Mono<Account> findById(String id) {
+	public Mono<BankAccount> findById(String id) {
 		return repo.findById(id);
 	}
 
 	// REQ03 : Validacion de Cuenta Unica- Ahorro.,
 	@Override
-	public Mono<Account> create(Account account) {
+	public Mono<BankAccount> create(BankAccount account) {
 		System.out.println("CUENTAAA");
 
 		// Aperturar una Cuenta Ahorro.. MSAhorro. DATOS cuenta (nroCuenta,SALDO,fechaApert..) List<Client> objClient.
@@ -95,9 +95,9 @@ public class AccountServiceImpl implements IAccountService {
 						return Flux.just(account).flatMap( objC ->{
 								//Flux:
 							wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-							.syncBody(objC).retrieve().bodyToFlux(Account.class).subscribe();
+							.syncBody(objC).retrieve().bodyToFlux(BankAccount.class).subscribe();
 							return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-									.syncBody(objC).retrieve().bodyToFlux(Account.class);
+									.syncBody(objC).retrieve().bodyToFlux(BankAccount.class);
 						}).next() //Convierte de Flux a Mono.
 								.flatMap(client ->{
 									return repo.save(account);
@@ -129,9 +129,9 @@ public class AccountServiceImpl implements IAccountService {
 					return Flux.just(account).flatMap( objC ->{
 							//Flux:
 						wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-						.syncBody(objC).retrieve().bodyToFlux(Account.class).subscribe();
+						.syncBody(objC).retrieve().bodyToFlux(BankAccount.class).subscribe();
 						return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-								.syncBody(objC).retrieve().bodyToFlux(Account.class);
+								.syncBody(objC).retrieve().bodyToFlux(BankAccount.class);
 					}).next() //Convierte de Flux a Mono.
 							.flatMap(client ->{
 								return repo.save(account);
@@ -227,7 +227,7 @@ public class AccountServiceImpl implements IAccountService {
 	}
 
 	@Override
-	public Mono<Account> update(Account account, String id) {
+	public Mono<BankAccount> update(BankAccount account, String id) {
 		// TODO Auto-generated method stub
 		/*
 		 * return repo.findById(id).flatMap(Account ->{
@@ -305,9 +305,21 @@ public class AccountServiceImpl implements IAccountService {
 	}
 
 	@Override
-	public Flux<Account> findClienteByNroDocAccount(String nroDoc) {
+	public Flux<BankAccount> findClienteByNroDocAccount(String nroDoc) {
 
 		return repo.findByAccountXDocument(nroDoc);
+	}
+
+	@Override
+	public Mono<BankAccount> findAccountByNroAccount(Integer accNumber) {
+		
+		return repo.findByAccountNumber(accNumber);
+	}
+
+	@Override
+	public Mono<BankAccount> save(BankAccount account) {
+		
+		return repo.save(account);
 	}
 
 }

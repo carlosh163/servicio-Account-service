@@ -1,8 +1,6 @@
 package com.springboot.appbanco.service;
 
-import java.util.Map;
-
-import com.springboot.appbanco.model.Account;
+import com.springboot.appbanco.model.BankAccount;
 import com.springboot.appbanco.model.Client;
 
 import reactor.core.publisher.Flux;
@@ -10,13 +8,13 @@ import reactor.core.publisher.Mono;
 
 public interface IAccountService {
 
-	public Flux<Account> findAll();
+	public Flux<BankAccount> findAll();
 
-	public Mono<Account> findById(String id);
+	public Mono<BankAccount> findById(String id);
 
-	public Mono<Account> create(Account account);
+	public Mono<BankAccount> create(BankAccount account);
 
-	public Mono<Account> update(Account account, String id);
+	public Mono<BankAccount> update(BankAccount account, String id);
 
 	public Mono<Void> delete(String id);
 	
@@ -29,5 +27,9 @@ public interface IAccountService {
 	
 	
 	public Mono<Client> findClientByNroDoc(String nroDoc); //Consumo A cliente.
-	public Flux<Account> findClienteByNroDocAccount(String nroDoc); //Consulta al documento Account
+	public Flux<BankAccount> findClienteByNroDocAccount(String nroDoc); //Consulta al documento Account
+	
+	public Mono<BankAccount> findAccountByNroAccount (Integer accNumber);
+	
+	public Mono<BankAccount> save(BankAccount account);
 }

@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.springboot.appbanco.exception.ModeloNotFoundException;
-import com.springboot.appbanco.model.Account;
+import com.springboot.appbanco.model.BankAccount;
 import com.springboot.appbanco.model.Client;
 import com.springboot.appbanco.service.IAccountService;
 
@@ -62,12 +62,12 @@ public class AccountController {
 	
 	
 	@GetMapping
-	public Flux<Account> findAll(){
+	public Flux<BankAccount> findAll(){
 		return service.findAll();
 	}
 	
 	@GetMapping("/{id}")
-	public Mono<Account> findById(@PathVariable String id){
+	public Mono<BankAccount> findById(@PathVariable String id){
 		
 		//Mono<Account> accountE = service.findById(id);
 		//accountE.empty()
@@ -90,13 +90,13 @@ public class AccountController {
 	}
 	
 	@PostMapping
-	public Mono<Account> create(@RequestBody Account perso){
-		return service.create(perso);
+	public Mono<BankAccount> create(@RequestBody BankAccount account){
+		return service.create(account);
 	}
 	
 	
 	@PutMapping("/{id}")
-	public Mono<Account> update(@RequestBody Account perso, @PathVariable String id){
+	public Mono<BankAccount> update(@RequestBody BankAccount perso, @PathVariable String id){
 		return service.update(perso, id);
 	}
 	
@@ -120,8 +120,36 @@ public class AccountController {
 	//
 	
 	@GetMapping("/ListarClientesXNroDocuLocal/{nroDoc}")
-	public Flux<Account> findClientNrDocuL(@PathVariable String nroDoc){
+	public Flux<BankAccount> findClientNrDocuL(@PathVariable String nroDoc){
 		return service.findClienteByNroDocAccount(nroDoc);
 	}
 	
+	
+	//Consumo Trans:
+	
+	@PutMapping("/updateBalanceAccountByAccountNumber/{accountNumber}/{quantity}")
+	public Mono<BankAccount> updateBalanceAccountByAccountNumber(@PathVariable Integer accountNumber,@PathVariable double quantity){
+		
+		return service.findAccountByNroAccount(accountNumber).flatMap(account ->{
+			account.setBalance(account.getBalance()+quantity);
+			return service.save(account);
+		});
+		
+	}
+	
+	@PutMapping("/updateBalanceAccountRetireByAccountNumber/{accountNumber}/{quantity}")
+	public Mono<BankAccount> updateBalanceAccountRetireByAccountNumber(@PathVariable Integer accountNumber,@PathVariable double quantity){
+		
+		return service.findAccountByNroAccount(accountNumber).flatMap(account ->{
+			if(account.getBalance()-quantity>=0) {
+				account.setBalance(account.getBalance()-quantity);
+				return service.save(account);
+			}else {
+				System.out.println("Error saldo insuficiente..");
+				return Mono.empty();
+			}
+			
+		});
+		
+	}
 }
