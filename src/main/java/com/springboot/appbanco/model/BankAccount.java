@@ -39,6 +39,11 @@ public class BankAccount {
 
 	private List<Client> customerList; // Todos los Clientes que poseen una cuenta (Titulares)
 	private List<PersonAuthorized> personAuthorizedList; // Personas Autorizadas
+	
+	
+	//Atributos PROYECTO 2:
+	private Integer numMaxDesposit;
+	private Integer numMaxRetirement;
 
 	private char accountstatus; // Activo o Inactivo.
 
@@ -112,6 +117,22 @@ public class BankAccount {
 
 	public void setProductType(String productType) {
 		this.productType = productType;
+	}
+
+	public Integer getNumMaxDesposit() {
+		return numMaxDesposit;
+	}
+
+	public void setNumMaxDesposit(Integer numMaxDesposit) {
+		this.numMaxDesposit = numMaxDesposit;
+	}
+
+	public Integer getNumMaxRetirement() {
+		return numMaxRetirement;
+	}
+
+	public void setNumMaxRetirement(Integer numMaxRetirement) {
+		this.numMaxRetirement = numMaxRetirement;
 	}
 
 	

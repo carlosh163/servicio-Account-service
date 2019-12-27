@@ -29,9 +29,6 @@ public class AccountServiceImpl implements IAccountService {
 	@Qualifier("client")
 	private WebClient wCClient;
 	
-	
-	
-	
 	@Autowired
 	@Qualifier("personAutho")
 	private WebClient wCPersoAutho;
@@ -52,7 +49,6 @@ public class AccountServiceImpl implements IAccountService {
 	// REQ03 : Validacion de Cuenta Unica- Ahorro.,
 	@Override
 	public Mono<BankAccount> create(BankAccount account) {
-		System.out.println("CUENTAAA");
 
 		// Aperturar una Cuenta Ahorro.. MSAhorro. DATOS cuenta (nroCuenta,SALDO,fechaApert..) List<Client> objClient.
 		// OBJETIVO: Identificar si los DNI de los Clientes son nuevos....
@@ -74,6 +70,15 @@ public class AccountServiceImpl implements IAccountService {
 			System.out.println("Ingreso a ver 1 Cliente,tipo");
 			String typeC = objClient.getClientType();
 			String typeAccountl = account.getAccountType();
+			
+			
+			//Cuentas iniales con 0
+			Double balanceP = new Double(account.getBalance());
+			if( balanceP == null ){
+				account.setBalance(0.0);
+			}
+			
+			
 			if(typeC.equals("Personal")) {
 				System.out.println("El tipo es Personal");
 				//Solo 1 debe tener de cada tipo:: (3 CB)
@@ -91,13 +96,19 @@ public class AccountServiceImpl implements IAccountService {
 						
 						
 						
+						
+						
 						/* Registrando en MS CLiente.... Datos de la cuenta, Lista de Clientes (FILAS)*/
 						return Flux.just(account).flatMap( objC ->{
 								//Flux:
-							wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-							.syncBody(objC).retrieve().bodyToFlux(BankAccount.class).subscribe();
-							return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-									.syncBody(objC).retrieve().bodyToFlux(BankAccount.class);
+							return wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+							.syncBody(objC).retrieve().bodyToFlux(BankAccount.class)
+							
+							.flatMap(obj -> {
+								return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+										.syncBody(objC).retrieve().bodyToFlux(BankAccount.class);
+							});
+							
 						}).next() //Convierte de Flux a Mono.
 								.flatMap(client ->{
 									return repo.save(account);

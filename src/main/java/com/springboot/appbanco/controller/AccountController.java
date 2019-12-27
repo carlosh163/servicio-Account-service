@@ -31,7 +31,6 @@ import reactor.core.publisher.Mono;
 
 @RefreshScope
 @RestController
-@RequestMapping("api/account")
 public class AccountController {
 	
 	
@@ -151,5 +150,12 @@ public class AccountController {
 			
 		});
 		
+	}
+	
+	//Pago de una CC desde mi CB.return service.findAccountByNroAccount(accountNumber)
+	
+	@GetMapping("/findAccountByNumberAccount/{numAcc}")
+	public Mono<BankAccount> findClientNrDocuL(@PathVariable Integer numAcc){
+		return service.findAccountByNroAccount(numAcc);
 	}
 }
