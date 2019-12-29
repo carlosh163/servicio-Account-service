@@ -8,11 +8,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.springboot.appbanco.controller.AccountController;
 import com.springboot.appbanco.model.BankAccount;
 import com.springboot.appbanco.model.Client;
 import com.springboot.appbanco.repo.IAccountRepo;
@@ -22,6 +26,9 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class AccountServiceImpl implements IAccountService {
+	
+	
+	private static Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
 
 	// Inyectar nuestro Cliente
 
@@ -35,6 +42,16 @@ public class AccountServiceImpl implements IAccountService {
 
 	@Autowired
 	IAccountRepo repo;
+	
+	
+	@Value("${valor.perfil.vip}")
+	private double vPerfilVip;
+	
+	@Value("${valor.perfil.pyme}")
+	private double vPerfilPyme;
+	
+	@Value("${valor.perfil.corp}")
+	private double vPerfilCorporative;
 
 	@Override
 	public Flux<BankAccount> findAll() {
@@ -77,10 +94,16 @@ public class AccountServiceImpl implements IAccountService {
 			if( balanceP == null ){
 				account.setBalance(0.0);
 			}
+			if( new Double(account.getMinBalanceEndMonth()) == null ){
+				account.setMinBalanceEndMonth(0.0);
+			}
 			
 			
-			if(typeC.equals("Personal")) {
-				System.out.println("El tipo es Personal");
+			Date date = new Date();
+			account.setOpeningDate(date);
+			
+			if(typeC.equals("Personal" ) || typeC.equals("Persona VIP")) {
+				System.out.println("El tipo es Personal o VIP");
 				//Solo 1 debe tener de cada tipo:: (3 CB)
 				
 				
@@ -91,28 +114,81 @@ public class AccountServiceImpl implements IAccountService {
 					if (b) {
 						// System.out.println("Ya puede registrar");
 
-						Date date = new Date();
-						account.setOpeningDate(date);
+						
 						
 						
 						
 						
 						
 						/* Registrando en MS CLiente.... Datos de la cuenta, Lista de Clientes (FILAS)*/
-						return Flux.just(account).flatMap( objC ->{
-								//Flux:
-							return wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-							.syncBody(objC).retrieve().bodyToFlux(BankAccount.class)
+						return Mono.just(account).flatMap( objC ->{
+							//monto minimo, validar tipo de Perfil (Persona Vip,PYME,Corporative)
+							//objC.get
+							boolean statusVIP= false;
+							double montoMin=0;
+							if(typeC.equals("Persona VIP")){
+								montoMin = vPerfilVip;
+								statusVIP = true;
+							}
+							/*else if(typeC.equals("PYME")){
+								montoMin = vPerfilPyme;
+							}else if(typeC.equals("Corporative")) {
+								montoMin = vPerfilCorporative;
+							}*/
+							log.info("Monto Minimo:"+montoMin);
 							
-							.flatMap(obj -> {
-								return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-										.syncBody(objC).retrieve().bodyToFlux(BankAccount.class);
-							});
+							if(objC.getBalance() >= montoMin) {
+								
+								if(statusVIP) {
+									if( objC.getMinBalanceEndMonth() > 0) {
+										
+										return wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+												.syncBody(objC).retrieve().bodyToFlux(BankAccount.class)
+												.next()
+												.flatMap(obj -> {
+															return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+																	.syncBody(objC).retrieve().bodyToFlux(BankAccount.class)
+																	.next() //Convierte de Flux a Mono.
+																	.flatMap(client ->{
+																		return repo.save(account);
+																	});
+														});
+										
+										
+									}else {
+										log.info("Falta definir el Monto minimo Mensual");
+									}
+									
+									
+								}else {
+									//Cuenta Personal:
+									//Flux:
+									return wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+									.syncBody(objC).retrieve().bodyToFlux(BankAccount.class)
+									.next()
+									.flatMap(obj -> {
+												return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+														.syncBody(objC).retrieve().bodyToFlux(BankAccount.class)
+														.next() //Convierte de Flux a Mono.
+														.flatMap(client ->{
+															return repo.save(account);
+														});
+											});
+								}
+								
+								
+								
+							}else {
+								log.info("Es saldo de creacion es menor al Minimo..");
+								return Mono.empty();
+							}
 							
-						}).next() //Convierte de Flux a Mono.
-								.flatMap(client ->{
-									return repo.save(account);
-								});
+							return Mono.empty();
+							
+							
+									
+						});
+						
 					} else {
 						
 						//return new ResponseEntity<Page<Genero>>(pacientes, HttpStatus.OK);
@@ -128,7 +204,7 @@ public class AccountServiceImpl implements IAccountService {
 				
 				
 				
-			}else if(typeC.equals("Empresarial")){
+			}else if(typeC.equals("Empresarial") || typeC.equals("PYME") || typeC.equals("Corporative")){
 				System.out.println("El tipo es Empresarial");
 				
 				if(typeAccountl.equals("Ahorro")) {
@@ -136,17 +212,73 @@ public class AccountServiceImpl implements IAccountService {
 				}else if(typeAccountl.equals("Plazo")) {
 					System.out.println("No puede tener una cuenta");
 				}else {
-					/* Registrando en MS CLiente.... Datos de la cuenta, Lista de Clientes (FILAS)*/
-					return Flux.just(account).flatMap( objC ->{
-							//Flux:
-						wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-						.syncBody(objC).retrieve().bodyToFlux(BankAccount.class).subscribe();
-						return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
-								.syncBody(objC).retrieve().bodyToFlux(BankAccount.class);
-					}).next() //Convierte de Flux a Mono.
-							.flatMap(client ->{
-								return repo.save(account);
-							});
+					return Mono.just(account).flatMap( objC ->{
+						
+						
+						
+						//monto minimo, validar tipo de Perfil (PYME,Corporative)
+						//objC.get
+						boolean statusVIP= false;
+						double montoMin=0;
+						if(typeC.equals("PYME")){
+							montoMin = vPerfilPyme;
+							statusVIP = true;
+						}else if(typeC.equals("Corporative")){
+							montoMin = vPerfilCorporative;
+							statusVIP = true;
+						}
+						
+						if(objC.getBalance() >= montoMin) {
+							
+							if(statusVIP) {
+								if( objC.getMinBalanceEndMonth() > 0) {
+									
+									return wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+											.syncBody(objC).retrieve().bodyToFlux(BankAccount.class)
+											.next()
+											.flatMap(obj -> {
+														return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+																.syncBody(objC).retrieve().bodyToFlux(BankAccount.class)
+																.next() //Convierte de Flux a Mono.
+																.flatMap(client ->{
+																	return repo.save(account);
+																});
+													});
+									
+									
+								}else {
+									log.info("Falta definir el Monto minimo Mensual");
+								}
+								
+								
+							}else {
+								//Cuenta Personal:
+								//Flux:
+								return wCClient.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+										.syncBody(objC).retrieve().bodyToFlux(BankAccount.class)
+										.next()
+										.flatMap(obj -> {
+													return wCPersoAutho.post().accept(APPLICATION_JSON_UTF8).contentType(APPLICATION_JSON_UTF8)
+															.syncBody(objC).retrieve().bodyToFlux(BankAccount.class)
+															.next() //Convierte de Flux a Mono.
+															.flatMap(client ->{
+																return repo.save(account);
+															});
+												});
+							}
+							
+							
+							
+						}else {
+							log.info("Es saldo de creacion es menor al Minimo..");
+							return Mono.empty();
+						}
+						
+						return Mono.empty();
+						
+						
+								
+					});
 				}
 			}
 			
@@ -179,56 +311,6 @@ public class AccountServiceImpl implements IAccountService {
 				return estado;
 				
 			});
-
-				/*String DNI = client.getDocumentNumber();
-
-				Account objcuenta = new Account();
-				objcuenta.setAccountstatus('N');
-				
-/*Flux.fromIterable(lstclient).flatMap(clientExist ->{
-	
-	
-	
-	
-});*/
-				/*return Flux.fromIterable(list).flatMap(client -> {
-
-					String DNI = client.getDocumentNumber();
-
-					Account objcuenta = new Account();
-					objcuenta.setAccountstatus('N');
-
-					return repo.findByAccountXDocument(DNI).switchIfEmpty(Mono.just(objcuenta)).map(DatAccountsOp -> {
-						if (DatAccountsOp.getAccountstatus() == 'N') {
-							// System.out.println("Ya puede registrar");
-							return true;
-
-						} else {
-							// System.out.println("Ya existe");
-							return false;
-						}
-
-						// return estadoF;
-					});
-
-				});
-
-
-				
-						return repo.findByAccountXDocument(DNI).switchIfEmpty(Mono.just(objcuenta)).map(DatAccountsOp -> {
-					if (DatAccountsOp.getAccountstatus() == 'N') {
-						 System.out.println("Ya puede registrar");
-						return true;
-
-					} else {
-						// System.out.println("Ya existe");
-						return false;
-					}
-
-					// return estadoF;
-				});
-
-			});*/
 			
 		});
 		

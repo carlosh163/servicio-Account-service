@@ -1,4 +1,4 @@
-package com.springboot.appbanco.model;
+	package com.springboot.appbanco.model;
 
 import java.util.Date;
 import java.time.LocalDateTime;
@@ -44,6 +44,8 @@ public class BankAccount {
 	//Atributos PROYECTO 2:
 	private Integer numMaxDesposit;
 	private Integer numMaxRetirement;
+	
+	private double minBalanceEndMonth;
 
 	private char accountstatus; // Activo o Inactivo.
 
@@ -133,6 +135,14 @@ public class BankAccount {
 
 	public void setNumMaxRetirement(Integer numMaxRetirement) {
 		this.numMaxRetirement = numMaxRetirement;
+	}
+
+	public double getMinBalanceEndMonth() {
+		return minBalanceEndMonth;
+	}
+
+	public void setMinBalanceEndMonth(double minBalanceEndMonth) {
+		this.minBalanceEndMonth = minBalanceEndMonth;
 	}
 
 	

@@ -44,6 +44,8 @@ public class AccountController {
 	@Value("${configuracion.texto}")
 	private String texto;
 	
+	
+	
 	@GetMapping("/obtener-config")
 	public ResponseEntity<?> obtenerConfig(@Value("${server.port}") String puerto){
 		log.info(texto);

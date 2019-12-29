@@ -8,6 +8,12 @@ public class ExceptionResponse {
 	private String mensaje;
 	private String detalles;
 	
+	public ExceptionResponse(Date timestamp, String mensaje) {
+		super();
+		this.timestamp = timestamp;
+		this.mensaje = mensaje;
+	}
+	
 	public ExceptionResponse(Date timestamp, String mensaje, String detalles) {
 		this.timestamp = timestamp;
 		this.mensaje = mensaje;
