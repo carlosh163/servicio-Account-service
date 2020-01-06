@@ -46,6 +46,8 @@ public class BankAccount {
 	private Integer numMaxRetirement;
 	
 	private double minBalanceEndMonth;
+	
+	private String bankName;
 
 	private char accountstatus; // Activo o Inactivo.
 
@@ -143,6 +145,14 @@ public class BankAccount {
 
 	public void setMinBalanceEndMonth(double minBalanceEndMonth) {
 		this.minBalanceEndMonth = minBalanceEndMonth;
+	}
+
+	public String getBankName() {
+		return bankName;
+	}
+
+	public void setBankName(String bankName) {
+		this.bankName = bankName;
 	}
 
 	

@@ -1,13 +1,5 @@
 package com.springboot.appbanco.model;
 
-import java.util.Date;
-import java.util.List;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
-import lombok.Data;
-
 public class Client extends Person{
 
 	//private String idClient;

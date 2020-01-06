@@ -1,9 +1,6 @@
 package com.springboot.appbanco.model;
 
-import java.time.LocalDateTime;
 import java.util.Date;
-
-import org.springframework.data.annotation.Id;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
